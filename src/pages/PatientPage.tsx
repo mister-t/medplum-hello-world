@@ -37,11 +37,9 @@ export function PatientPage(): JSX.Element {
     const fetchLocation = (patient: Patient | undefined): void => {
       if (patient) {
         const { address } = patient
-
         if (address?.length) {
           setPostalCode(address[0].postalCode);
         }
-
       }
     };
 
@@ -82,7 +80,7 @@ export function PatientPage(): JSX.Element {
     <Fragment key={getReferenceString(patient)}>
       <PatientHeader patient={patient} />
       <Title>
-        FORECAST for {location?.zip}: {weatherInfo ? weatherInfo.weather_overview.substring(weatherInfo.weather_overview.lastIndexOf('overall')) : ''}
+        FORECAST for {location?.zip}: {weatherInfo ? weatherInfo.weather_overview.substring(weatherInfo.weather_overview.search(/overall/i)) : ''}
       </Title>
       <Tabs onChange={(t) => navigate(`./${t}`)}>
         <Tabs.List bg="white">
