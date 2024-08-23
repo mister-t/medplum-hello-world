@@ -27,36 +27,37 @@ export function PatientPage(): JSX.Element {
     weather_overview: string;
   }
 
-  const [postalCode, setPostalCode] = useState<string | undefined>();
   const [location, setLocation] = useState<LocationInfo | undefined>();
   const [weatherInfo, setWeatherInfo] = useState<WeatherInfo | undefined>();
 
   const OPEN_WEATHER_API_KEY = import.meta.env.VITE_OPEN_WEATHER_API_KEY;
 
   useEffect(() => {
-    const fetchLocation = (patient: Patient | undefined): void => {
+    const fetchLocation = (patient: Patient | undefined): string | undefined => {
       if (patient) {
         const { address } = patient
         if (address?.length) {
-          setPostalCode(address[0].postalCode);
+          return address[0].postalCode;
         }
       }
+      return;
     };
 
     const fetchWeather = async (patient: Patient | undefined, openWeatherApiKey: string): Promise<void> => {
-      fetchLocation(patient);
+      const postalCode = fetchLocation(patient);
 
       if (postalCode) {
         const DIRECT_GEOCODE_BY_ZIP = `http://api.openweathermap.org/geo/1.0/zip?zip=${postalCode},US&appid=${openWeatherApiKey}`;
 
         const resp = await fetch(DIRECT_GEOCODE_BY_ZIP)
+        let data;
         if (resp.ok) {
-          const data = await resp.json();
-          setLocation(data);
+          data = await resp.json();
         }
 
-        if (location) {
-          const { lat, lon } = location;
+        if (data) {
+          setLocation(data);
+          const { lat, lon } = data;
           const WEATHER_OVERVIEW_URL = `https://api.openweathermap.org/data/3.0/onecall/overview?lat=${lat}&lon=${lon}&appid=${openWeatherApiKey}`
           const result = await fetch(WEATHER_OVERVIEW_URL);
           if (result.ok) {
@@ -70,7 +71,7 @@ export function PatientPage(): JSX.Element {
     };
 
     fetchWeather(patient, OPEN_WEATHER_API_KEY)
-  }, [patient, postalCode]);
+  }, [patient]);
 
   if (!patient) {
     return <Loader />;
